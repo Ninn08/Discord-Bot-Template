@@ -1,8 +1,7 @@
-// You only need that file, if you're using commands with other prefixes than /
 const prefix = process.env.PREFIX;
 
 const validatePermissions = (permissions) => {
-  const { Permissions } = require("discord.js");
+  const { Permissions, Client, Message } = require("discord.js");
   const validPermissions = Object.keys(Permissions.FLAGS);
 
   for (const permission of permissions) {
@@ -12,6 +11,12 @@ const validatePermissions = (permissions) => {
   }
 };
 
+/**
+ * 
+ * @param {Client} client 
+ * @param {Message} message 
+ */
+
 module.exports = async (client, message) => {
     const { member, content, guild } = message;
 
@@ -19,7 +24,7 @@ module.exports = async (client, message) => {
 
 	if(!content.startsWith(prefix)) return;
 
-	const args = content.slice(prefix.length).split(/ +/);
+	const args = content.slice(prefix.length).split(/[ ]+/);
 	const cmdName = args.shift().toLowerCase();
 	const command = message.client.commands.get(cmdName)
        || message.client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(cmdName));
@@ -28,16 +33,12 @@ module.exports = async (client, message) => {
 
 	let {
 		permissions = [],
-		permissionError = 'You are not authorized to execute this command!',
-		requiredRoles = [],
-		minArgs = 0,
-		maxArgs = null,
-		expectedArgs = '',
-		execute,
-		guildOnly,
+		botPermissions = [],
+		run,
+		guildOnly
 	} = command;
 
-	if(guildOnly && message.channel.type === 'dm') return message.reply('This command works only on a server!');
+	if(guildOnly && message.channel.type === "DM") return message.reply('This command cannot be executed in DMS.');
 
 	// Ensure the permissions are in an array and are all valid
 	if (permissions.length) {
@@ -50,55 +51,36 @@ module.exports = async (client, message) => {
 
 	// Ensure the user has the required permissions
 	for (const permission of permissions) {
-		if (!member.hasPermission(permission)) {
-			message.reply(permissionError);
+		if (!member.permissions.has(permission)) {
+			message.reply(`Missing \`${permission}\` Permission`);
 			return;
 		}
 	}
 
-	let roleCount = 0;
-	let missingRole = '';
-
-	// Ensure the user has the required roles
-	for (const requiredRole of requiredRoles) {
-		const role = guild.roles.cache.find(
-			r => r.name === requiredRole,
-		);
-
-		if (role && member.roles.cache.has(role.id)) {
-			roleCount++;
+	// Ensuring the bot permissions
+	if(botPermissions.length){
+		if(typeof botPermissions === "string"){
+			botPermissions = [botPermissions];
 		}
-		else {
-			missingRole = requiredRole;
+
+		validatePermissions(botPermissions)
+	}
+
+	// Ensure the bot has the required permissions
+	for(const permission of botPermissions){
+		if(!guild.me.permissions.has(permission)){
+			if(guild.me.permissions.has("SEND_MESSAGES") && message.channel.permissionsFor(guild?.me).has("SEND_MESSAGES")){
+				message.reply(`I'm missing \`${permission}\` Permission`)
+			} else return;
 		}
 	}
 
-	if(roleCount === 0 && requiredRoles.length > 0) {
-		return message.reply(
-			`You need the "${missingRole}" role to use this command!`,
-		);
+	// run the command
+	try {
+		message.channel.sendTyping()
+		await run(client, message, args).catch(console.error)
+	} catch (error) {
+		console.log(error)
+		await message.reply(`An error occurred while executing the command`).catch(console.error)
 	}
-
-	// Ensure we have the correct number of arguments
-	if (
-		args.length < minArgs || (maxArgs !== null && args.length > maxArgs)
-	) {
-		return message.reply(
-			`Wrong syntax! Try ${prefix}${command.name} ${expectedArgs}`,
-		);
-	}
-
-	message.channel.startTyping();
-
-	if(guild.me.hasPermission('MANAGE_MESSAGES')) {
-		message.delete()
-			.then(() => {
-				execute(message, args, Discord, client);
-			})
-			.then(() => message.channel.stopTyping(true));
-		return;
-	}
-
-	execute(message, args, Discord, client);
-	message.channel.stopTyping(true);
 };

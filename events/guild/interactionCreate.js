@@ -1,12 +1,17 @@
-// You only need this file, if you're using slash commands
-
 module.exports = async (client, interaction) => {
     if (interaction.isCommand()) {
-      const { commandName } = interaction;
-      const command = client.commands.get(interaction.commandName);
-
+      const command = client.slashCommands.get(interaction.commandName);
       if (!command) return;
 
-      // Your code here
+      // execute
+      try {
+        await command.execute(client, interaction)
+      } catch (error) {
+        console.log(error)
+        await interaction.reply({
+          content: "An error occurred while executing the command",
+          ephemeral: true
+        }).catch(console.error)
+      }
     }
 };

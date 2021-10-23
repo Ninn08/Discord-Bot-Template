@@ -1,10 +1,11 @@
 require('dotenv').config();
 const { Client, Intents, Collection } = require('discord.js');
 
-// Create a new Discord client
 const client = new Client({
     intents: [
-        // Here's a list of all available intents. Enable only required ones
+        /**
+         * @Intents
+         */
 
         // Intents.FLAGS.GUILDS,
         // Intents.FLAGS.GUILD_MEMBERS,
@@ -25,15 +26,15 @@ const client = new Client({
 });
 
 client.commands = new Collection();
+client.slashCommands = new Collection();
+client.menuCommands = new Collection();
 
-// Load all commands in ./commands/ into the Collection
-['command_handler','event_handler'].forEach(handler => {
+// load our handlers
+['command','event', 'interaction'].forEach(handler => {
 	require(`./handlers/${handler}`)(client);
 });
 
-// You only need this line, if you're using slash commands
-// Register / reload slash commands
-require('./util/createCommands')();
+// register slash (/) commands 
+require('./util/register')();
 
-// Login to the bot
 client.login(process.env.TOKEN);

@@ -15,16 +15,17 @@
     "discord",
     "bot"
   ],
-  "author": "Toasty65",
+  "author": "Ninn08",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Toasty65/Discord-Bot-Template/issues"
   },
   "homepage": "https://github.com/Toasty65/Discord-Bot-Template#readme",
   "dependencies": {
+    "@discordjs/builders": "^0.7.0",
     "@discordjs/rest": "^0.1.0-canary.0",
     "discord-api-types": "^0.23.1",
-    "discord.js": "^13.1.0",
+    "discord.js": "^13.2.0",
     "dotenv": "^10.0.0"
   }
 }

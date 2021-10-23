@@ -31,7 +31,7 @@ module.exports = (client) => {
     const command = require(`../${file}`);
 
     if (command.name) {
-      client.commands.set(command.name, command);
+      client.commands.set(command.data.name, command);
     }
   }
 };
