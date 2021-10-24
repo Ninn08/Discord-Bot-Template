@@ -1,21 +1,39 @@
-// You only need this file when using slash commands.
 const { REST } = require("@discordjs/rest");
 const { Routes } = require("discord-api-types/v9");
 const fs = require("fs");
 
 module.exports = async () => {
   const commands = [];
-  const commandFiles = fs
-    .readdirSync("commands")
-    .filter((file) => file.endsWith(".js"));
 
-  // Place your client and guild ids here
-  const clientId = process.env.CLIENTID;
-  const guildId = process.env.GUILDID;
+  const clientId = process.env.CLIENT_ID;
+  const guildId = process.env.GUILD_ID;
 
-  for (const file of commandFiles) {
-    const command = require(`../commands/${file}`);
-    commands.push(command.data.toJSON());
+  // register slash commands
+  const slashCommands = fs
+    .readdirSync("slashCommands");
+  for(const files of slashCommands){
+    const folder = fs
+      .readdirSync(`slashCommands/${files}`)
+      .filter(file => file.endsWith(".js"));
+
+      for(const file of folder){
+        const command = require(`../slashCommands/${files}/${file}`);
+        commands.push(command.data.toJSON())
+      }
+  }
+
+  // register context menu commands
+  const menuCommands = fs
+    .readdirSync("menuCommands");
+  for(const files of menuCommands){
+    const folder = fs
+      .readdirSync(`menuCommands/${files}`)
+      .filter(file => file.endsWith(".js"));
+
+      for(const file of folder){
+        const command = require(`../menuCommands/${files}/${file}`);
+        commands.push(command.data.toJSON())
+      }
   }
 
   const rest = new REST({ version: "9" }).setToken(process.env.TOKEN);
@@ -23,10 +41,16 @@ module.exports = async () => {
   try {
     console.log("Started refreshing application (/) commands.");
 
-    // Delete the 'guildId' parameter if you want to create global slash commands.
     await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
-      body: commands,
+      body: commands
     });
+
+    /**
+     * @globalCommands
+     * await rest.put(Routes.applicationCommands(clientId), {
+     *  body: commands
+     * })
+     */
 
     console.log("Successfully reloaded application (/) commands.");
   } catch (error) {
