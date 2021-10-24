@@ -1,7 +1,7 @@
 const prefix = process.env.PREFIX;
+const { Permissions, Client, Message } = require("discord.js");
 
 const validatePermissions = (permissions) => {
-  const { Permissions, Client, Message } = require("discord.js");
   const validPermissions = Object.keys(Permissions.FLAGS);
 
   for (const permission of permissions) {
