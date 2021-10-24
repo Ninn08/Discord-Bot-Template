@@ -37,8 +37,8 @@ __**IMPORTANT**__
 - Fill in your `.env` file:
   - `TOKEN=` : Your bot's token
   - `PREFIX=` : Your bot's prefix
-  - `CLIENT_ID` : Your bot's discord ID
-  - `GUILD_ID` : Your test guild ID (You only need this if you don't want global commands)
+  - `CLIENT_ID=` : Your bot's discord ID
+  - `GUILD_ID=` : Your test guild ID (You only need this if you don't want global commands)
 
 - Remove the `#` in the line `# .env` in your **`.gitignore`** file, so that you don't push your secret variables.
 
